@@ -1,4 +1,4 @@
-from flask import Flask, request, Response, render_template_string, jsonify, redirect, url_for
+from flask import Flask, request, Response, render_template_string, jsonify, redirect, url_for, session, flash
 from flask_socketio import SocketIO
 from twilio.rest import Client
 import os
@@ -16,6 +16,15 @@ import requests
 import tempfile
 import uuid
 from urllib.parse import quote
+import glob
+import base64
+import functools
+from flask import render_template, abort, send_from_directory
+from werkzeug.exceptions import BadRequest
+from geventwebsocket.handler import WebSocketHandler
+from gevent.pywsgi import WSGIServer
+from flask_socketio import SocketIO, emit
+from datetime import datetime, timedelta
 
 # Load environment variables from .env
 load_dotenv()
@@ -69,6 +78,172 @@ client = Client(account_sid, auth_token)
 # In-memory storage for call statuses
 calls = {}
 
+# Authentication config
+admin_username = os.environ.get('ADMIN_USERNAME', 'admin')
+admin_password = os.environ.get('ADMIN_PASSWORD', 'password')
+
+# Function to check if user is logged in
+def is_authenticated():
+    return session.get('logged_in', False)
+
+# Create login decorator
+def login_required(f):
+    @functools.wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'logged_in' not in session or not session['logged_in']:
+            return redirect(url_for('login', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Define a function to handle the login page HTML generation
+def generate_login_html(error=None):
+    """Generate the login page HTML."""
+    html = """<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - Call Center Testing</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #000913;
+            color: #E2E8F0;
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
+            background-image: linear-gradient(to bottom, #000913, #0F172A);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 2rem;
+        }
+        
+        .logo-container {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .logo {
+            width: 150px;
+            margin-bottom: 1rem;
+        }
+        
+        .card {
+            background-color: rgba(30, 41, 59, 0.8);
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            border: 1px solid rgba(74, 85, 104, 0.2);
+        }
+        
+        h2 {
+            color: #E2E8F0;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: #CBD5E0;
+        }
+        
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            border: 1px solid #4A5568;
+            background-color: #2D3748;
+            color: #E2E8F0;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            border-color: #4C51BF;
+        }
+        
+        button {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 6px;
+            background-image: linear-gradient(to right, #4C51BF, #6366F1);
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+        }
+        
+        .error-message {
+            background-color: rgba(254, 178, 178, 0.1);
+            border-left: 4px solid #FC8181;
+            color: #FC8181;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-container">
+            <img src="/static/logo.png" alt="Call Center Testing Logo" class="logo">
+            <h2>Call Center Testing</h2>
+        </div>
+        
+        <div class="card">
+            <form action="/login" method="post">
+                {% if error %}
+                <div class="error-message">
+                    {{ error }}
+                </div>
+                {% endif %}
+                
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <button type="submit">Log In</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>"""
+    return render_template_string(html, error=error)
+
 # Define a function to handle the actual HTML generation
 def generate_admin_html():
     """Generate the admin HTML with embedded JavaScript and no template errors."""
@@ -119,7 +294,28 @@ def generate_admin_html():
             width: 100%;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 2rem;
+        }}
+        
+        /* Add logout button styles */
+        .logout-button {{
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            background-image: linear-gradient(to right, #4C51BF, #6366F1);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }}
+        
+        .logout-button:hover {{
+            opacity: 0.9;
         }}
         
         .header {{
@@ -441,6 +637,9 @@ def generate_admin_html():
     </style>
 </head>
 <body>
+    <!-- Add the logout button -->
+    <a href="/logout" class="logout-button">Logout</a>
+    
     <div class="container">
         <div class="header">
             <div class="logo">
@@ -786,12 +985,47 @@ def generate_admin_html():
     # Format the HTML with the options
     return html.format(mp3_options=mp3_options, voice_options=voice_options)
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """Handle user login."""
+    error = None
+    
+    # Check if user is already logged in
+    if 'logged_in' in session and session['logged_in']:
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        if username == admin_username and password == admin_password:
+            session['logged_in'] = True
+            session['username'] = username
+            
+            # Redirect to the next parameter if provided, otherwise to index
+            next_page = request.args.get('next')
+            if next_page:
+                return redirect(next_page)
+            return redirect(url_for('index'))
+        else:
+            error = "Invalid username or password"
+    
+    return generate_login_html(error=error)
+
+@app.route('/logout')
+def logout():
+    """Handle logout."""
+    session.pop('logged_in', None)
+    return redirect(url_for('login'))
+
 @app.route('/')
+@login_required
 def index():
     """Main page."""
     return generate_admin_html()
 
 @app.route('/initiate_calls', methods=['POST'])
+@login_required
 def initiate_calls():
     """Legacy endpoint for initiating calls. Now redirects to the main page."""
     logger.info("Legacy initiate_calls endpoint accessed, redirecting to main page")
@@ -1268,7 +1502,36 @@ def twiml():
     
     return Response(str(response), mimetype='text/xml')
 
+# Define a common function to get logout button HTML
+def get_logout_button_html():
+    """Return the HTML for the logout button"""
+    return """
+    <a href="/logout" class="logout-button">Logout</a>
+    <style>
+        .logout-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            background-image: linear-gradient(to right, #4C51BF, #6366F1);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        
+        .logout-button:hover {
+            opacity: 0.9;
+        }
+    </style>
+    """
+
 @app.route('/test-mp3')
+@login_required
 def test_mp3():
     """Test route to check MP3 accessibility."""
     mp3_list = []
@@ -1428,6 +1691,8 @@ def test_mp3():
         </style>
     </head>
     <body>
+        {get_logout_button_html()}
+        
         <div class="container">
             <div class="header">
                 <img src="/static/logo.png" alt="Call Center Testing Logo">
@@ -1461,9 +1726,10 @@ def test_mp3():
     return html
 
 @app.route('/test-static')
+@login_required
 def test_static():
     """Test if static files are being served correctly."""
-    return """
+    html = f"""
     <!DOCTYPE html>
     <html>
     <head>
@@ -1471,13 +1737,13 @@ def test_static():
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         <style>
-            * {
+            * {{
                 box-sizing: border-box;
                 margin: 0;
                 padding: 0;
-            }
+            }}
             
-            body {
+            body {{
                 font-family: 'Inter', sans-serif;
                 background: #000913;
                 color: white;
@@ -1485,46 +1751,46 @@ def test_static():
                 margin: 0;
                 min-height: 100vh;
                 background-image: linear-gradient(to bottom, #000913, #0F172A);
-            }
+            }}
             
-            .container {
+            .container {{
                 width: 100%;
                 max-width: 1200px;
                 margin: 0 auto;
                 padding: 20px;
-            }
+            }}
             
-            .header {
+            .header {{
                 display: flex;
                 align-items: center;
                 gap: 10px;
                 margin-bottom: 20px;
-            }
+            }}
             
-            .header img {
+            .header img {{
                 height: 40px;
-            }
+            }}
             
-            h1 {
+            h1 {{
                 font-size: 32px;
                 font-weight: 700;
                 margin-bottom: 20px;
-            }
+            }}
             
-            p {
+            p {{
                 margin-bottom: 15px;
                 color: #E2E8F0;
-            }
+            }}
             
-            .alert {
+            .alert {{
                 background: rgba(79, 209, 197, 0.1);
                 border-left: 4px solid #4FD1C5;
                 padding: 15px 20px;
                 border-radius: 8px;
                 margin: 20px 0;
-            }
+            }}
             
-            .btn {
+            .btn {{
                 display: inline-block;
                 font-weight: 500;
                 text-align: center;
@@ -1540,50 +1806,52 @@ def test_static():
                 text-decoration: none;
                 margin-right: 10px;
                 margin-top: 10px;
-            }
+            }}
             
-            .btn-primary {
+            .btn-primary {{
                 background: linear-gradient(90deg, #6366F1, #64B5F6);
                 color: white;
-            }
+            }}
             
-            .btn-primary:hover {
+            .btn-primary:hover {{
                 box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-            }
+            }}
             
-            .card {
+            .card {{
                 background: #1E293B;
                 border-radius: 8px;
                 padding: 20px;
                 margin-bottom: 20px;
                 box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            }
+            }}
             
-            footer {
+            footer {{
                 margin-top: 50px;
                 padding: 30px 0;
                 border-top: 1px solid #2D3748;
                 text-align: center;
-            }
+            }}
             
-            footer a {
+            footer a {{
                 color: #64B5F6;
                 text-decoration: none;
                 transition: color 0.2s;
-            }
+            }}
             
-            footer a:hover {
+            footer a:hover {{
                 color: #90CAF9;
-            }
+            }}
             
-            .text-muted {
+            .text-muted {{
                 color: #94A3B8;
                 font-size: 14px;
                 margin-top: 10px;
-            }
+            }}
         </style>
     </head>
     <body>
+        {get_logout_button_html()}
+        
         <div class="container">
             <div class="header">
                 <img src="/static/logo.png" alt="Call Center Testing Logo">
@@ -1614,8 +1882,10 @@ def test_static():
     </body>
     </html>
     """
+    return html
 
 @app.route('/test-twilio')
+@login_required
 def test_twilio():
     """Test Twilio account status."""
     try:
@@ -1825,6 +2095,8 @@ def test_twilio():
             </style>
         </head>
         <body>
+            {get_logout_button_html()}
+            
             <div class="container">
                 <div class="header">
                     <img src="/static/logo.png" alt="Call Center Testing Logo">
@@ -1894,6 +2166,7 @@ def test_twilio():
         return html
     except Exception as e:
         return f"""
+        <!DOCTYPE html>
         <html>
         <head>
             <title>Error checking Twilio account</title>
@@ -1941,6 +2214,11 @@ def test_twilio():
                     color: #FF5757;
                 }}
                 
+                h4 {{
+                    color: #FF5757;
+                    margin-bottom: 10px;
+                }}
+                
                 .alert {{
                     background: rgba(255, 87, 87, 0.1);
                     border-left: 4px solid #FF5757;
@@ -1969,6 +2247,7 @@ def test_twilio():
                     border: none;
                     text-decoration: none;
                     margin-top: 20px;
+                    margin-right: 10px;
                 }}
                 
                 .btn-primary {{
@@ -2005,16 +2284,20 @@ def test_twilio():
             </style>
         </head>
         <body>
+            {get_logout_button_html()}
+            
             <div class="container">
                 <div class="header">
                     <img src="/static/logo.png" alt="Call Center Testing Logo">
-                    <h1>Error checking Twilio account</h1>
+                    <h1>Test Call Failed</h1>
                 </div>
                 
                 <div class="alert">
-                    <p>{str(e)}</p>
+                    <h4>Error Details</h4>
+                    <p>Error: {str(e)}</p>
                 </div>
                 
+                <a href="/test-twilio" class="btn btn-primary">Back to Twilio Test Page</a>
                 <a href="/" class="btn btn-primary">Back to Main Page</a>
                 
                 <footer>
@@ -2031,7 +2314,122 @@ def test_twilio():
         </html>
         """
 
+@app.route('/simple-twiml', methods=['POST', 'GET'])
+def simple_twiml():
+    """Provide a very simple TwiML response for testing."""
+    logger.info(f"Simple TwiML request received with values: {request.values}")
+    
+    twiml = """
+    <Response>
+        <Say>This is a simple test call without MP3 files.</Say>
+        <Pause length="1"/>
+        <Say>If you hear this message, basic Twilio functionality is working correctly.</Say>
+    </Response>
+    """
+    
+    return Response(twiml, mimetype='text/xml')
+
+@app.route('/api/mp3-files', methods=['GET'])
+@login_required
+def api_mp3_files():
+    """API endpoint to get a list of available MP3 files."""
+    global mp3_files
+    mp3_files = get_mp3_files()
+    return jsonify({"mp3_files": mp3_files})
+
+@app.route('/api/eleven-labs-voices', methods=['GET'])
+@login_required
+def api_eleven_labs_voices():
+    """API endpoint to get a list of available Eleven Labs voices."""
+    return jsonify({"voices": elevenlabs_voices})
+
+@app.route('/upload-mp3', methods=['POST'])
+@login_required
+def upload_mp3():
+    """Handle MP3 file upload."""
+    if 'mp3_file' not in request.files:
+        return redirect(url_for('manage_mp3'))
+    
+    file = request.files['mp3_file']
+    
+    if file.filename == '':
+        return redirect(url_for('manage_mp3'))
+    
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        
+        # Save the file
+        file.save(file_path)
+        
+        # Update the mp3_files list
+        global mp3_files
+        mp3_files = get_mp3_files()
+        
+        logger.info(f"Uploaded new MP3 file: {filename}")
+        
+        return redirect(url_for('manage_mp3'))
+    
+    return redirect(url_for('manage_mp3'))
+
+@app.route('/delete-mp3/<filename>')
+@login_required
+def delete_mp3(filename):
+    """Delete an MP3 file."""
+    if not filename or '..' in filename:  # Basic security check
+        return redirect(url_for('manage_mp3'))
+    
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        logger.info(f"Deleted MP3 file: {filename}")
+        
+        # Update the mp3_files list
+        global mp3_files
+        mp3_files = get_mp3_files()
+    
+    return redirect(url_for('manage_mp3'))
+
+@app.route('/rename-mp3', methods=['POST'])
+@login_required
+def rename_mp3():
+    """Rename an MP3 file."""
+    original_filename = request.form.get('original_filename')
+    new_filename = request.form.get('new_filename')
+    
+    if not original_filename or not new_filename or '..' in original_filename or '..' in new_filename:
+        return redirect(url_for('manage_mp3'))
+    
+    # Ensure new filename has a valid extension
+    if not allowed_file(new_filename):
+        return redirect(url_for('manage_mp3'))
+    
+    original_path = os.path.join(app.config['UPLOAD_FOLDER'], original_filename)
+    new_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(new_filename))
+    
+    if os.path.exists(original_path):
+        os.rename(original_path, new_path)
+        logger.info(f"Renamed MP3 file: {original_filename} to {new_filename}")
+        
+        # Update the mp3_files list
+        global mp3_files
+        mp3_files = get_mp3_files()
+    
+    return redirect(url_for('manage_mp3'))
+
+@app.route('/test-twiml', methods=['POST', 'GET'])
+def test_twiml():
+    """Return TwiML for test calls."""
+    resp = VoiceResponse()
+    resp.say("This is a test call from the Call Center Testing Tool. Your Twilio account is working correctly. Thank you for testing!", voice='alice')
+    resp.pause(length=1)
+    resp.say("Goodbye!", voice='alice')
+    resp.hangup()
+    return str(resp)
+
 @app.route('/test-call', methods=['POST'])
+@login_required
 def test_call():
     """Make a test call with simple TwiML."""
     try:
@@ -2048,6 +2446,7 @@ def test_call():
         )
         
         html = f"""
+        <!DOCTYPE html>
         <html>
         <head>
             <title>Test Call Initiated - Call Center Testing</title>
@@ -2094,6 +2493,11 @@ def test_call():
                     margin-bottom: 20px;
                 }}
                 
+                p {{
+                    margin-bottom: 15px;
+                    color: #E2E8F0;
+                }}
+                
                 .card {{
                     background: #0F172A;
                     border-radius: 16px;
@@ -2114,11 +2518,6 @@ def test_call():
                 
                 .card-body {{
                     padding: 20px;
-                }}
-                
-                p {{
-                    margin-bottom: 15px;
-                    color: #E2E8F0;
                 }}
                 
                 .success-icon {{
@@ -2159,6 +2558,7 @@ def test_call():
                     transition: all 0.2s;
                     border: none;
                     text-decoration: none;
+                    margin-right: 10px;
                     margin-top: 20px;
                 }}
                 
@@ -2196,6 +2596,8 @@ def test_call():
             </style>
         </head>
         <body>
+            {get_logout_button_html()}
+            
             <div class="container">
                 <div class="header">
                     <img src="/static/logo.png" alt="Call Center Testing Logo">
@@ -2239,6 +2641,7 @@ def test_call():
         return html
     except Exception as e:
         return f"""
+        <!DOCTYPE html>
         <html>
         <head>
             <title>Test Call Failed - Call Center Testing</title>
@@ -2356,6 +2759,8 @@ def test_call():
             </style>
         </head>
         <body>
+            {get_logout_button_html()}
+            
             <div class="container">
                 <div class="header">
                     <img src="/static/logo.png" alt="Call Center Testing Logo">
@@ -2383,536 +2788,6 @@ def test_call():
         </body>
         </html>
         """
-
-@app.route('/simple-twiml', methods=['POST', 'GET'])
-def simple_twiml():
-    """Provide a very simple TwiML response for testing."""
-    logger.info(f"Simple TwiML request received with values: {request.values}")
-    
-    twiml = """
-    <Response>
-        <Say>This is a simple test call without MP3 files.</Say>
-        <Pause length="1"/>
-        <Say>If you hear this message, basic Twilio functionality is working correctly.</Say>
-    </Response>
-    """
-    
-    return Response(twiml, mimetype='text/xml')
-
-@app.route('/api/mp3-files', methods=['GET'])
-def api_mp3_files():
-    """API endpoint to get all MP3 files."""
-    global mp3_files
-    mp3_files = get_mp3_files()
-    return jsonify({"files": mp3_files})
-
-@app.route('/api/eleven-labs-voices', methods=['GET'])
-def api_eleven_labs_voices():
-    """API endpoint to get all ElevenLabs voices."""
-    return jsonify({"voices": elevenlabs_voices})
-
-@app.route('/manage-mp3')
-def manage_mp3():
-    """Page to manage MP3 files."""
-    global mp3_files
-    mp3_files = get_mp3_files()
-    
-    html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Manage MP3 Files - Call Center Testing</title>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-        <style>
-            * {{
-                font-family: 'Inter', sans-serif;
-                box-sizing: border-box;
-            }}
-            
-            body {{
-                color: #E2E8F0;
-                padding: 0;
-                margin: 0;
-                min-height: 100vh;
-                background-image: linear-gradient(to bottom, #000913, #0F172A);
-            }}
-            
-            .container {{
-                width: 100%;
-                max-width: 1200px;
-                margin: 0 auto;
-                padding: 20px;
-            }}
-            
-            .header {{
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 10px 0;
-            }}
-            
-            .logo {{
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                font-weight: 700;
-                font-size: 22px;
-            }}
-            
-            .logo img {{
-                height: 100px;
-            }}
-            
-            h1 {{
-                color: #E2E8F0;
-                margin-bottom: 30px;
-            }}
-            
-            .card {{
-                background-color: rgba(15, 23, 42, 0.6);
-                border-radius: 8px;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-                margin-bottom: 30px;
-                overflow: hidden;
-                border: 1px solid rgba(255, 255, 255, 0.1);
-            }}
-            
-            .card-header {{
-                background-color: rgba(15, 23, 42, 0.8);
-                padding: 15px 20px;
-                font-weight: 600;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            }}
-            
-            .card-body {{
-                padding: 20px;
-            }}
-            
-            table {{
-                width: 100%;
-                border-collapse: collapse;
-                margin-bottom: 1rem;
-                color: #E2E8F0;
-            }}
-            
-            table th, table td {{
-                padding: 12px 15px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                text-align: left;
-            }}
-            
-            table th {{
-                font-weight: 600;
-                color: #94A3B8;
-                text-transform: uppercase;
-                font-size: 0.85rem;
-                letter-spacing: 0.5px;
-            }}
-            
-            .btn {{
-                display: inline-block;
-                font-weight: 500;
-                text-align: center;
-                vertical-align: middle;
-                cursor: pointer;
-                padding: 8px 16px;
-                font-size: 14px;
-                line-height: 1.5;
-                border-radius: 6px;
-                transition: all 0.2s ease;
-                text-decoration: none;
-                margin-right: 5px;
-            }}
-            
-            .btn-primary {{
-                background-image: linear-gradient(to right, #0EA5E9, #2563EB);
-                border: none;
-                color: white;
-            }}
-            
-            .btn-primary:hover {{
-                opacity: 0.9;
-                transform: translateY(-1px);
-            }}
-            
-            .btn-danger {{
-                background-color: rgba(220, 38, 38, 0.8);
-                border: none;
-                color: white;
-            }}
-            
-            .btn-danger:hover {{
-                background-color: rgba(220, 38, 38, 1);
-            }}
-            
-            .btn-info {{
-                background-color: rgba(6, 182, 212, 0.8);
-                border: none;
-                color: white;
-            }}
-            
-            .btn-info:hover {{
-                background-color: rgba(6, 182, 212, 1);
-            }}
-            
-            .btn-secondary {{
-                background-color: #475569;
-                border: none;
-                color: white;
-            }}
-            
-            .btn-secondary:hover {{
-                background-color: #64748B;
-            }}
-            
-            .btn-sm {{
-                padding: 5px 10px;
-                font-size: 12px;
-            }}
-            
-            .file-actions {{
-                white-space: nowrap;
-            }}
-            
-            .form-group {{
-                margin-bottom: 20px;
-            }}
-            
-            .form-group label {{
-                display: block;
-                margin-bottom: 8px;
-                font-weight: 500;
-            }}
-            
-            .form-control-file {{
-                display: block;
-                width: 100%;
-                padding: 10px;
-                background-color: rgba(15, 23, 42, 0.8);
-                color: #E2E8F0;
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 4px;
-            }}
-            
-            .form-text {{
-                display: block;
-                margin-top: 5px;
-                font-size: 0.875rem;
-                color: #94A3B8;
-            }}
-            
-            .modal {{
-                display: none;
-                position: fixed;
-                z-index: 1000;
-                left: 0;
-                top: 0;
-                width: 100%;
-                height: 100%;
-                overflow: auto;
-                background-color: rgba(0, 0, 0, 0.7);
-            }}
-            
-            .modal-dialog {{
-                margin: 10% auto;
-                width: 90%;
-                max-width: 500px;
-            }}
-            
-            .modal-content {{
-                background-color: #0F172A;
-                border-radius: 8px;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-            }}
-            
-            .modal-header {{
-                padding: 15px 20px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }}
-            
-            .modal-title {{
-                margin: 0;
-                font-weight: 600;
-            }}
-            
-            .close {{
-                background: none;
-                border: none;
-                font-size: 24px;
-                font-weight: bold;
-                color: #94A3B8;
-                cursor: pointer;
-            }}
-            
-            .modal-body {{
-                padding: 20px;
-            }}
-            
-            .modal-footer {{
-                padding: 15px 20px;
-                border-top: 1px solid rgba(255, 255, 255, 0.1);
-                display: flex;
-                justify-content: flex-end;
-            }}
-            
-            .form-control {{
-                display: block;
-                width: 100%;
-                padding: 10px;
-                background-color: rgba(15, 23, 42, 0.8);
-                color: #E2E8F0;
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 4px;
-            }}
-            
-            footer {{
-                margin-top: 50px;
-                padding: 20px 0;
-                border-top: 1px solid rgba(255, 255, 255, 0.1);
-                text-align: center;
-            }}
-            
-            footer a {{
-                color: #38BDF8;
-                text-decoration: none;
-                display: inline-flex;
-                align-items: center;
-                transition: color 0.2s;
-            }}
-            
-            footer a:hover {{
-                color: #0EA5E9;
-            }}
-            
-            .text-muted {{
-                color: #94A3B8;
-            }}
-            
-            .ml-2 {{
-                margin-left: 8px;
-            }}
-            
-            .mt-4 {{
-                margin-top: 1.5rem;
-            }}
-            
-            /* Animation for modals */
-            .fade {{
-                transition: opacity 0.15s linear;
-            }}
-            
-            .show {{
-                display: block;
-            }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <div class="logo">
-                    <img src="/static/logo.png" alt="Call Center Testing Logo">
-                    <div>Call Center Testing</div>
-                </div>
-            </div>
-            
-            <h1>Manage MP3 Files</h1>
-            
-            <div class="card">
-                <div class="card-header">Upload New MP3 File</div>
-                <div class="card-body">
-                    <form action="/upload-mp3" method="post" enctype="multipart/form-data">
-                        <div class="form-group">
-                            <label for="mp3_file">Select MP3 File</label>
-                            <input type="file" class="form-control-file" id="mp3_file" name="mp3_file" accept=".mp3,.wav" required>
-                            <small class="form-text">Max file size: 16MB. Allowed formats: MP3, WAV</small>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Upload</button>
-                    </form>
-                </div>
-            </div>
-            
-            <div class="card">
-                <div class="card-header">MP3 Files</div>
-                <div class="card-body">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Filename</th>
-                                <th>Preview</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {''.join([f'''
-                            <tr>
-                                <td>{file}</td>
-                                <td><audio controls src="{base_url}/static/mp3/{file}" style="max-width: 300px;"></audio></td>
-                                <td class="file-actions">
-                                    <button type="button" class="btn btn-sm btn-info rename-btn" data-filename="{file}">
-                                        <i class="fas fa-edit"></i> Rename
-                                    </button>
-                                    <a href="/delete-mp3/{file}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this file?')">
-                                        <i class="fas fa-trash"></i> Delete
-                                    </a>
-                                </td>
-                            </tr>
-                            ''' for file in mp3_files])}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <div class="mt-4">
-                <a href="/" class="btn btn-primary">Back to Main Page</a>
-            </div>
-            
-            <!-- Rename Modal -->
-            <div class="modal" id="renameModal" tabindex="-1" role="dialog">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Rename File</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <form action="/rename-mp3" method="post">
-                            <div class="modal-body">
-                                <input type="hidden" id="original_filename" name="original_filename">
-                                <div class="form-group">
-                                    <label for="new_filename">New Filename</label>
-                                    <input type="text" class="form-control" id="new_filename" name="new_filename" required>
-                                    <small class="form-text">Include file extension (.mp3 or .wav)</small>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-primary">Rename</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            
-            <footer>
-                <p>
-                    <a href="https://github.com/webdevtodayjason/callcenter-testing" target="_blank">
-                        <i class="fab fa-github fa-2x"></i>
-                        <span class="ml-2">View on GitHub</span>
-                    </a>
-                </p>
-                <p class="text-muted">© 2023 Jason Brashear</p>
-            </footer>
-        </div>
-        
-        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-        <script>
-            $(document).ready(function() {{
-                /* Handle rename button click */
-                $('.rename-btn').click(function() {{
-                    var filename = $(this).data('filename');
-                    $('#original_filename').val(filename);
-                    $('#new_filename').val(filename);
-                    $('#renameModal').addClass('show');
-                }});
-                
-                /* Handle modal close */
-                $('.close, .btn-secondary').click(function() {{
-                    $('#renameModal').removeClass('show');
-                }});
-            }});
-        </script>
-    </body>
-    </html>
-    """
-    return html
-
-@app.route('/upload-mp3', methods=['POST'])
-def upload_mp3():
-    """Handle MP3 file upload."""
-    if 'mp3_file' not in request.files:
-        return redirect(url_for('manage_mp3'))
-    
-    file = request.files['mp3_file']
-    
-    if file.filename == '':
-        return redirect(url_for('manage_mp3'))
-    
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        
-        # Save the file
-        file.save(file_path)
-        
-        # Update the mp3_files list
-        global mp3_files
-        mp3_files = get_mp3_files()
-        
-        logger.info(f"Uploaded new MP3 file: {filename}")
-        
-        return redirect(url_for('manage_mp3'))
-    
-    return redirect(url_for('manage_mp3'))
-
-@app.route('/delete-mp3/<filename>')
-def delete_mp3(filename):
-    """Delete an MP3 file."""
-    if not filename or '..' in filename:  # Basic security check
-        return redirect(url_for('manage_mp3'))
-    
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    
-    if os.path.exists(file_path):
-        os.remove(file_path)
-        logger.info(f"Deleted MP3 file: {filename}")
-        
-        # Update the mp3_files list
-        global mp3_files
-        mp3_files = get_mp3_files()
-    
-    return redirect(url_for('manage_mp3'))
-
-@app.route('/rename-mp3', methods=['POST'])
-def rename_mp3():
-    """Rename an MP3 file."""
-    original_filename = request.form.get('original_filename')
-    new_filename = request.form.get('new_filename')
-    
-    if not original_filename or not new_filename or '..' in original_filename or '..' in new_filename:
-        return redirect(url_for('manage_mp3'))
-    
-    # Ensure new filename has a valid extension
-    if not allowed_file(new_filename):
-        return redirect(url_for('manage_mp3'))
-    
-    original_path = os.path.join(app.config['UPLOAD_FOLDER'], original_filename)
-    new_path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(new_filename))
-    
-    if os.path.exists(original_path):
-        os.rename(original_path, new_path)
-        logger.info(f"Renamed MP3 file: {original_filename} to {new_filename}")
-        
-        # Update the mp3_files list
-        global mp3_files
-        mp3_files = get_mp3_files()
-    
-    return redirect(url_for('manage_mp3'))
-
-@app.route('/test-twiml', methods=['POST', 'GET'])
-def test_twiml():
-    """Return TwiML for test calls."""
-    resp = VoiceResponse()
-    resp.say("This is a test call from the Call Center Testing Tool. Your Twilio account is working correctly. Thank you for testing!", voice='alice')
-    resp.pause(length=1)
-    resp.say("Goodbye!", voice='alice')
-    resp.hangup()
-    return str(resp)
 
 if __name__ == '__main__':
     # Print configuration for debugging

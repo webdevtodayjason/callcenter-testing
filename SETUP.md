@@ -18,6 +18,9 @@ Visit https://github.com/webdevtodayjason/callcenter-testing to verify that your
    - `TWILIO_AUTH_TOKEN`: Your Twilio auth token
    - `TWILIO_PHONE_NUMBER`: Your Twilio phone number in E.164 format
    - `BASE_URL`: Your ngrok URL (for local development) or production URL
+   - `FLASK_SECRET_KEY`: A secure random string for session management
+   - `ADMIN_USERNAME`: Username for accessing the application (default: admin)
+   - `ADMIN_PASSWORD`: Password for accessing the application (default: password)
    - `ELEVENLABS_API_KEY`: Your Eleven Labs API key (for enhanced TTS)
    - `ELEVENLABS_VOICES`: JSON object mapping voice names to Eleven Labs voice IDs
 
@@ -52,9 +55,10 @@ The application will be available at http://localhost:5005.
 ## 6. Testing the Application
 
 1. Open your browser and navigate to http://localhost:5005
-2. Enter at least one phone number in E.164 format (e.g., +12345678900)
-3. Configure your call settings
-4. Click "Start Calls" to initiate test calls
+2. Log in with the admin credentials set in your `.env` file
+3. Enter at least one phone number in E.164 format (e.g., +12345678900)
+4. Configure your call settings
+5. Click "Start Calls" to initiate test calls
 
 ## 7. Troubleshooting
 

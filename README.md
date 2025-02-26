@@ -20,6 +20,11 @@ A Flask-based web application for testing call center systems using Twilio's voi
 
 ## ✨ Features
 
+### 🔒 Secure Access
+- **Password Protection**: Secure login system to protect the application
+- **Session Management**: Maintain user sessions for seamless usage
+- **Logout Functionality**: Easily end your session when finished
+
 ### 📞 Multiple Call Management
 - **Simultaneous Calls**: Make calls to multiple phone numbers with configurable delay between calls
 - **Load Control**: Set the maximum number of simultaneous calls to control system load
@@ -73,7 +78,7 @@ A Flask-based web application for testing call center systems using Twilio's voi
    cp .env.example .env
    ```
 
-5. Edit the `.env` file with your Twilio credentials and other configuration options.
+5. Edit the `.env` file with your Twilio credentials, admin login credentials, and other configuration options.
 
 ## 📋 Usage
 
@@ -84,7 +89,9 @@ A Flask-based web application for testing call center systems using Twilio's voi
 
 2. Open your browser and navigate to `http://localhost:5005`
 
-3. Configure your call settings:
+3. Log in with the admin credentials configured in your `.env` file (default: username `admin`, password `password`)
+
+4. Configure your call settings:
    - Enter phone numbers (one per line) in E.164 format (e.g., +15551234567)
    - Set the delay between calls (minimum 1 second)
    - Set the maximum number of simultaneous calls (1-50)
@@ -92,9 +99,9 @@ A Flask-based web application for testing call center systems using Twilio's voi
    - Select MP3 options (random or specific file)
    - Configure Text-to-Speech settings
 
-4. Click "Start Calls" to initiate the calls
+5. Click "Start Calls" to initiate the calls
 
-5. Monitor call status in real-time on the page
+6. Monitor call status in real-time on the page
 
 ## 🎵 MP3 Management
 
