@@ -8,8 +8,12 @@
 [![Maintained by Jason Brashear](https://img.shields.io/badge/Maintained%20by-Jason%20Brashear-brightgreen.svg)](https://github.com/webdevtodayjason)
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/webdevtodayjason/callcenter-testing/main/static/phone.png" alt="Call Center Testing Tool Logo" width="200"/>
+  <img src="https://github.com/webdevtodayjason/callcenter-testing/blob/main/static/logo.png?raw=true" alt="Call Center Testing Tool Logo" width="200"/>
   <p><i>A powerful tool for testing call center systems with realistic voice simulations</i></p>
+</div>
+
+<div align="center">
+  <img src="https://github.com/webdevtodayjason/callcenter-testing/blob/main/static/screens-banner.png?raw=true" alt="Call Center Testing Interface" width="100%"/>
 </div>
 
 A Flask-based web application for testing call center systems using Twilio's voice API. This tool allows you to make test calls to phone numbers with customizable audio playback options.
