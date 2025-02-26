@@ -1,223 +1,122 @@
-# Call Center Testing Script
+# Call Center Testing Tool
 
-[![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
-[![Flask](https://img.shields.io/badge/Flask-2.0+-green.svg)](https://flask.palletsprojects.com/)
-[![Twilio](https://img.shields.io/badge/Twilio-API-red.svg)](https://www.twilio.com/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![SocketIO](https://img.shields.io/badge/SocketIO-Enabled-brightgreen.svg)](https://socket.io/)
-
-A Flask-based application for testing call center scripts and voice response systems. This tool allows you to initiate multiple test calls to a target number, play MP3 files, and monitor call status in real-time.
-
-![Call Center Testing Script](https://via.placeholder.com/800x400?text=Call+Center+Testing+Script)
+A Flask-based web application for testing call center systems using Twilio's voice API. This tool allows you to make test calls to phone numbers with customizable audio playback options.
 
 ## Features
 
-- **Multiple Call Testing**: Initiate multiple calls to a target phone number
-- **Real-time Call Monitoring**: Track call status updates in real-time using WebSockets
-- **Custom Greeting Text**: Option to use text-to-speech for custom greetings
-- **MP3 Playback**: Play random MP3 files during calls
-- **Diagnostic Tools**: Test pages for MP3 accessibility, static file serving, and Twilio account status
-- **Responsive UI**: Clean, Bootstrap-based interface
-
-## Table of Contents
-
-- [Installation](#installation)
-  - [Prerequisites](#prerequisites)
-  - [Setting Up Conda Environment](#setting-up-conda-environment)
-  - [Installing Dependencies](#installing-dependencies)
-- [Configuration](#configuration)
-  - [Environment Variables](#environment-variables)
-  - [Setting Up Ngrok](#setting-up-ngrok)
-- [Usage](#usage)
-  - [Starting the Application](#starting-the-application)
-  - [Making Test Calls](#making-test-calls)
-  - [Using Custom Greetings](#using-custom-greetings)
-  - [Diagnostic Tools](#diagnostic-tools)
-- [API Reference](#api-reference)
-- [Credits](#credits)
-- [License](#license)
+- **Multiple Call Management**: Make calls to multiple phone numbers with configurable delay between calls
+- **Customizable Audio Playback**:
+  - Text-to-Speech Only: Use Twilio's TTS or Eleven Labs for voice synthesis
+  - Text-to-Speech + MP3: Play a custom greeting followed by an MP3 file
+  - MP3 Only: Play only an MP3 file during the call
+- **MP3 File Management**:
+  - Upload MP3 files through the web interface
+  - Delete or rename existing MP3 files
+  - Preview MP3 files before using them in calls
+- **Text-to-Speech Options**:
+  - Choose between Twilio Voice or Eleven Labs for TTS
+  - Select from multiple Eleven Labs voices (when configured)
+  - Option to save TTS output as MP3 files
+- **Real-time Call Status Updates**: Monitor call progress with Socket.IO
+- **Test Pages**: Dedicated pages for testing MP3 playback, static file serving, and Twilio integration
 
 ## Installation
 
-### Prerequisites
-
-- Python 3.11 or higher
-- Conda package manager
-- Twilio account with API credentials
-- Ngrok account (for exposing local server to the internet)
-- MP3 files for playback testing
-
-### Setting Up Conda Environment
-
-1. Clone the repository:
-   ```bash
+1. Clone this repository:
+   ```
    git clone https://github.com/webdevtodayjason/callcenter-testing.git
    cd callcenter-testing
    ```
 
-2. Create a new Conda environment:
-   ```bash
-   conda create -n callcenter-testing python=3.11
+2. Create and activate a Conda environment:
+   ```
+   conda create -n callcenter python=3.11
+   conda activate callcenter
    ```
 
-3. Activate the environment:
-   ```bash
-   conda activate callcenter-testing
+3. Install the required dependencies:
+   ```
+   pip install -r requirements.txt
    ```
 
-### Installing Dependencies
-
-Install the required packages:
-
-```bash
-pip install flask flask-socketio twilio python-dotenv
-```
-
-## Configuration
-
-### Environment Variables
-
-Create a `.env` file in the project root with the following variables:
-
-```
-TWILIO_ACCOUNT_SID=your_twilio_account_sid
-TWILIO_AUTH_TOKEN=your_twilio_auth_token
-TWILIO_PHONE_NUMBER=your_twilio_phone_number
-BASE_URL=your_public_url_from_ngrok
-```
-
-### Setting Up Ngrok
-
-1. **Install Ngrok**:
-   - Download Ngrok from [https://ngrok.com/download](https://ngrok.com/download)
-   - Extract the downloaded file
-   - Move the ngrok executable to an accessible location
-
-2. **Create an Ngrok Account**:
-   - Sign up at [https://dashboard.ngrok.com/signup](https://dashboard.ngrok.com/signup)
-   - Get your auth token from the dashboard
-
-3. **Configure Ngrok**:
-   ```bash
-   ngrok config add-authtoken YOUR_AUTH_TOKEN
+4. Create a `.env` file based on the provided `.env.example`:
+   ```
+   cp .env.example .env
    ```
 
-4. **Start Ngrok**:
-   ```bash
-   ngrok http 5005
-   ```
-
-5. **Update Your .env File**:
-   - Copy the HTTPS URL provided by Ngrok (e.g., `https://a1b2c3d4.ngrok.io`)
-   - Update the `BASE_URL` in your `.env` file with this URL
+5. Edit the `.env` file with your Twilio credentials and other configuration options.
 
 ## Usage
 
-### Starting the Application
-
-1. Make sure your Conda environment is activated:
-   ```bash
-   conda activate callcenter-testing
+1. Start the application:
    ```
-
-2. Start the Flask application:
-   ```bash
    python app.py
    ```
 
-3. The application will run on `http://localhost:5005`
+2. Open your browser and navigate to `http://localhost:5000`
 
-### Making Test Calls
+3. Configure your call settings:
+   - Enter phone numbers (one per line) in E.164 format (e.g., +15551234567)
+   - Set the delay between calls
+   - Choose playback mode (Text-to-Speech Only, Text-to-Speech + MP3, or MP3 Only)
+   - Select MP3 options (random or specific file)
+   - Configure Text-to-Speech settings
 
-1. Open your browser and navigate to the application URL
-2. Enter the target phone number in the format `+1234567890`
-3. Specify the number of calls to make (1-50)
-4. Click "Initiate Calls"
-5. Monitor call status in the "Call Activity" table
+4. Click "Start Calls" to initiate the calls
 
-### Using Custom Greetings
+5. Monitor call status in real-time on the page
 
-1. Check the "Use Custom Intro Text-to-Speech" box
-2. Enter your custom greeting text in the text area that appears
-3. When calls are made, Twilio will speak this text before playing the MP3 file
+## MP3 Management
 
-### Diagnostic Tools
+The application provides a dedicated page for managing MP3 files:
 
-The application provides several diagnostic pages accessible from the main interface:
+1. Navigate to the "Manage MP3 Files" page from the main interface
+2. Upload new MP3 files (up to 16MB)
+3. Preview existing MP3 files
+4. Rename or delete MP3 files as needed
 
-- **Test MP3 Files**: Check if MP3 files are accessible and playable
-- **Test Static Files**: Verify that static files are being served correctly
-- **Test Twilio Account**: Check your Twilio account status and make a test call
+## Eleven Labs Integration (Optional)
 
-## API Reference
+To use Eleven Labs for enhanced Text-to-Speech:
 
-### Endpoints
+1. Sign up for an Eleven Labs account at [https://elevenlabs.io](https://elevenlabs.io)
+2. Get your API key from the Eleven Labs dashboard
+3. Add your API key to the `.env` file
+4. Configure your voice IDs in the `ELEVENLABS_VOICES` environment variable
 
-- `GET /`: Main admin interface
-- `POST /initiate_calls`: Initiate calls to a target number
-- `POST/GET /twiml`: TwiML instructions for Twilio
-- `POST /status`: Status callback for Twilio
-- `GET /test-mp3`: Test MP3 accessibility
-- `GET /test-static`: Test static file serving
-- `GET /test-twilio`: Test Twilio account status
-- `POST /test-call`: Make a test call
-- `POST/GET /simple-twiml`: Simple TwiML response for testing
+## Development
 
-## Directory Structure
+### Local Testing with ngrok
 
-```
-callcenter-testing/
-├── app.py                 # Main application file
-├── .env                   # Environment variables (create this)
-├── README.md              # This file
-├── static/                # Static files directory
-│   └── mp3/               # MP3 files for playback
-│       ├── file1.mp3
-│       ├── file2.mp3
-│       └── ...
-└── requirements.txt       # Python dependencies
-```
+For testing callbacks locally:
 
-## Credits
+1. Install ngrok: [https://ngrok.com/download](https://ngrok.com/download)
+2. Start ngrok on port 5000:
+   ```
+   ngrok http 5000
+   ```
+3. Update the `BASE_URL` in your `.env` file with the ngrok URL
 
-This project uses the following open-source packages and APIs:
+### Test Pages
 
-- [Flask](https://flask.palletsprojects.com/) - Web framework
-- [Flask-SocketIO](https://flask-socketio.readthedocs.io/) - WebSocket support
-- [Twilio](https://www.twilio.com/) - Telephony API
-- [Bootstrap](https://getbootstrap.com/) - UI framework
-- [jQuery](https://jquery.com/) - JavaScript library
-- [Socket.IO](https://socket.io/) - Real-time communication
-- [python-dotenv](https://github.com/theskumar/python-dotenv) - Environment variable management
+The application includes several test pages to verify functionality:
 
-## Author
-
-**Jason Brashear** - [WebDevTodayJason](https://github.com/webdevtodayjason/)
+- `/test-mp3`: Test MP3 file playback
+- `/test-static`: Test static file serving
+- `/test-twilio`: Test Twilio account integration
+- `/test-call`: Test TwiML response
 
 ## License
 
-This project is licensed under the MIT License - see below for details:
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-```
-MIT License
+## Author
 
-Copyright (c) 2023 Jason Brashear
+Jason Brashear
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+## Acknowledgments
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-``` 
+- [Twilio](https://www.twilio.com/) for their excellent voice API
+- [Flask](https://flask.palletsprojects.com/) for the web framework
+- [Socket.IO](https://socket.io/) for real-time communication
+- [Eleven Labs](https://elevenlabs.io/) for advanced text-to-speech capabilities 
