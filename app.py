@@ -95,29 +95,365 @@ def generate_admin_html():
 <html>
 <head>
     <title>Call Center Testing</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {{ padding: 20px; }}
-        #status {{ margin-top: 20px; }}
-        .call-status {{ margin-bottom: 10px; padding: 10px; border-radius: 5px; }}
-        .pending {{ background-color: #f8f9fa; }}
-        .in-progress {{ background-color: #fff3cd; }}
-        .completed {{ background-color: #d4edda; }}
-        .failed {{ background-color: #f8d7da; }}
-        footer {{ margin-top: 50px; padding: 20px 0; border-top: 1px solid #dee2e6; text-align: center; }}
-        footer a {{ color: #007bff; }}
-        footer a:hover {{ color: #0056b3; text-decoration: none; }}
-        .test-links {{ margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px; }}
-        .test-links a {{ margin-right: 15px; }}
-        #specific_mp3_container, #eleven_labs_voices_container, #custom_greeting_container {{ display: block; }}
-        .visible {{ display: block !important; }}
-        .card {{ margin-bottom: 20px; }}
+        /* CopyCoder-inspired styles */
+        * {{
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }}
+        
+        body {{
+            font-family: 'Inter', sans-serif;
+            background: #000913;
+            color: white;
+            padding: 0;
+            margin: 0;
+            min-height: 100vh;
+            background-image: linear-gradient(to bottom, #000913, #0F172A);
+        }}
+        
+        .container {{
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }}
+        
+        .header {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+        }}
+        
+        .logo {{
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 22px;
+        }}
+        
+        .logo img {{
+            height: 100px;
+        }}
+        
+        .new-feature {{
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin: 20px 0;
+            font-size: 14px;
+        }}
+        
+        .fire-icon {{
+            color: #FF9636;
+        }}
+        
+        .view-demo {{
+            color: #64B5F6;
+            text-decoration: none;
+        }}
+        
+        .card {{
+            background: #0F172A;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: none;
+            overflow: hidden;
+        }}
+        
+        .card-header {{
+            background: #1E293B;
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            border-bottom: 1px solid #2D3748;
+            font-size: 16px;
+        }}
+        
+        .card-body {{
+            padding: 20px;
+        }}
+        
+        h1 {{
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }}
+        
+        h3 {{
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }}
+        
+        .form-group {{
+            margin-bottom: 20px;
+        }}
+        
+        label {{
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #E2E8F0;
+        }}
+        
+        .form-control {{
+            width: 100%;
+            padding: 10px 15px;
+            background: #1E293B;
+            border: 1px solid #2D3748;
+            border-radius: 6px;
+            color: white;
+            font-family: 'Inter', sans-serif;
+        }}
+        
+        .form-control:focus {{
+            outline: none;
+            border-color: #64B5F6;
+            box-shadow: 0 0 0 2px rgba(100, 181, 246, 0.3);
+        }}
+        
+        select.form-control {{
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23A0AEC0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 30px;
+        }}
+        
+        textarea.form-control {{
+            min-height: 100px;
+        }}
+        
+        .btn {{
+            display: inline-block;
+            font-weight: 500;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: middle;
+            user-select: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }}
+        
+        .btn-primary {{
+            background: linear-gradient(90deg, #6366F1, #64B5F6);
+            color: white;
+        }}
+        
+        .btn-primary:hover {{
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }}
+        
+        .btn-primary:disabled {{
+            background: #4B5563;
+            cursor: not-allowed;
+            box-shadow: none;
+        }}
+        
+        .btn-danger {{
+            background: #FF5757;
+            color: white;
+        }}
+        
+        .btn-danger:hover {{
+            background: #FF3131;
+            box-shadow: 0 4px 12px rgba(255, 87, 87, 0.4);
+        }}
+        
+        .btn-danger:disabled {{
+            background: #4B5563;
+            cursor: not-allowed;
+            box-shadow: none;
+        }}
+        
+        .btn-info {{
+            background: #0EA5E9;
+            color: white;
+        }}
+        
+        .btn-info:hover {{
+            background: #0284C7;
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4);
+        }}
+        
+        .form-text {{
+            font-size: 12px;
+            color: #94A3B8;
+            margin-top: 5px;
+        }}
+        
+        .form-check {{
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }}
+        
+        .form-check-input {{
+            margin-right: 10px;
+            width: 16px;
+            height: 16px;
+            background: #1E293B;
+            border: 1px solid #4B5563;
+            border-radius: 3px;
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }}
+        
+        .form-check-input:checked {{
+            background-color: #6366F1;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 13l4 4L19 7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: center;
+            border-color: #6366F1;
+        }}
+        
+        .form-check-label {{
+            font-size: 14px;
+            color: #E2E8F0;
+        }}
+        
+        /* Call status styles */
+        #status {{
+            margin-top: 30px;
+        }}
+        
+        .call-status {{
+            margin-bottom: 10px;
+            padding: 12px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+        }}
+        
+        .pending {{
+            background-color: #1E293B;
+            border-left: 4px solid #A0AEC0;
+        }}
+        
+        .in-progress {{
+            background-color: #1E293B;
+            border-left: 4px solid #FFB156;
+        }}
+        
+        .completed {{
+            background-color: #1E293B;
+            border-left: 4px solid #4BB543;
+        }}
+        
+        .failed {{
+            background-color: #1E293B;
+            border-left: 4px solid #FF5757;
+        }}
+        
+        /* Test links section */
+        .test-links {{
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #1E293B;
+            border-radius: 12px;
+        }}
+        
+        .test-links h4 {{
+            margin-bottom: 15px;
+            font-weight: 600;
+            font-size: 18px;
+        }}
+        
+        .test-links a {{
+            display: inline-block;
+            margin-right: 15px;
+            color: #64B5F6;
+            text-decoration: none;
+            padding: 8px 16px;
+            background: rgba(100, 181, 246, 0.1);
+            border-radius: 6px;
+            transition: all 0.2s;
+        }}
+        
+        .test-links a:hover {{
+            background: rgba(100, 181, 246, 0.2);
+        }}
+        
+        /* Footer */
+        footer {{
+            margin-top: 50px;
+            padding: 30px 0;
+            border-top: 1px solid #2D3748;
+            text-align: center;
+        }}
+        
+        footer a {{
+            color: #64B5F6;
+            text-decoration: none;
+            transition: color 0.2s;
+        }}
+        
+        footer a:hover {{
+            color: #90CAF9;
+        }}
+        
+        .text-muted {{
+            color: #94A3B8;
+            font-size: 14px;
+            margin-top: 10px;
+        }}
+        
+        /* Responsive */
+        @media (max-width: 768px) {{
+            .row {{
+                flex-direction: column;
+            }}
+            
+            .col-md-6 {{
+                width: 100%;
+            }}
+        }}
+        
+        /* Grid system */
+        .row {{
+            display: flex;
+            flex-wrap: wrap;
+            margin-right: -15px;
+            margin-left: -15px;
+        }}
+        
+        .col-md-6 {{
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding-right: 15px;
+            padding-left: 15px;
+        }}
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="mb-4">Call Center Testing</h1>
+        <div class="header">
+            <div class="logo">
+                <img src="/static/logo.png" alt="Call Center Testing Logo">
+                <span>Call Center Testing</span>
+            </div>
+        </div>
+        
+        <div class="new-feature">
+            <span class="fire-icon">🔥</span>
+            <span>Multiple Phone Call Testing</span>
+            <span>with Eleven Labs TTS</span>
+        </div>
         
         <div class="row">
             <div class="col-md-6">
@@ -128,7 +464,7 @@ def generate_admin_html():
                             <div class="form-group">
                                 <label for="phone_numbers">Phone Numbers (one per line)</label>
                                 <textarea class="form-control" id="phone_numbers" rows="5" required></textarea>
-                                <small class="form-text text-muted">Enter one phone number per line in E.164 format (e.g., +15551234567)</small>
+                                <small class="form-text">Enter one phone number per line in E.164 format (e.g., +15551234567)</small>
                             </div>
                             
                             <div class="form-group">
@@ -139,10 +475,10 @@ def generate_admin_html():
                             <div class="form-group">
                                 <label for="simultaneous_calls">Simultaneous Calls (1-50, single number only)</label>
                                 <input type="number" class="form-control" id="simultaneous_calls" value="1" min="1" max="50">
-                                <small class="form-text text-muted">Only works when calling a single phone number. For multiple numbers, set to 1.</small>
+                                <small class="form-text">Only works when calling a single phone number. For multiple numbers, set to 1.</small>
                             </div>
                             
-                            <div class="form-check mb-3">
+                            <div class="form-check">
                                 <input type="checkbox" class="form-check-input" id="use_custom_greeting">
                                 <label class="form-check-label" for="use_custom_greeting">Custom Intro Text-to-Speech</label>
                             </div>
@@ -152,8 +488,10 @@ def generate_admin_html():
                                 <textarea class="form-control" id="custom_greeting" rows="3" placeholder="Enter your custom greeting text here..."></textarea>
                             </div>
                             
-                            <button type="submit" class="btn btn-primary" id="startButton">Start Calls</button>
-                            <button type="button" class="btn btn-danger" id="stopButton" disabled>Stop Calls</button>
+                            <div class="form-actions" style="display: flex; gap: 10px; margin-top: 20px;">
+                                <button type="submit" class="btn btn-primary" id="startButton">Start Calls</button>
+                                <button type="button" class="btn btn-danger" id="stopButton" disabled>Stop Calls</button>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -236,7 +574,7 @@ def generate_admin_html():
                             <label class="form-check-label" for="save_tts">Save Text-to-Speech as MP3</label>
                         </div>
                         
-                        <a href="/manage-mp3" class="btn btn-info" target="_blank">
+                        <a href="/manage-mp3" class="btn btn-info" target="_blank" style="margin-top: 10px;">
                             <i class="fas fa-music"></i> Manage MP3 Files
                         </a>
                     </div>
@@ -268,8 +606,6 @@ def generate_admin_html():
     </div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script>
         $(document).ready(function() {{
@@ -947,25 +1283,165 @@ def test_mp3():
     <!DOCTYPE html>
     <html>
     <head>
-        <title>MP3 Test</title>
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+        <title>MP3 Test - Call Center Testing</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         <style>
-            footer {{ margin-top: 50px; padding: 20px 0; border-top: 1px solid #dee2e6; text-align: center; }}
-            footer a {{ color: #007bff; }}
-            footer a:hover {{ color: #0056b3; text-decoration: none; }}
+            * {{
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }}
+            
+            body {{
+                font-family: 'Inter', sans-serif;
+                background: #000913;
+                color: white;
+                padding: 0;
+                margin: 0;
+                min-height: 100vh;
+                background-image: linear-gradient(to bottom, #000913, #0F172A);
+            }}
+            
+            .container {{
+                width: 100%;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+            }}
+            
+            .header {{
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 20px;
+            }}
+            
+            .header img {{
+                height: 40px;
+            }}
+            
+            h1 {{
+                font-size: 32px;
+                font-weight: 700;
+                margin-bottom: 20px;
+            }}
+            
+            h2 {{
+                font-size: 24px;
+                font-weight: 600;
+                margin: 30px 0 15px;
+            }}
+            
+            p {{
+                margin-bottom: 15px;
+                color: #E2E8F0;
+            }}
+            
+            .base-url {{
+                background: #1E293B;
+                padding: 10px 15px;
+                border-radius: 6px;
+                display: inline-block;
+                margin-bottom: 15px;
+                font-family: monospace;
+                color: #94A3B8;
+            }}
+            
+            .list-group {{
+                list-style: none;
+                padding: 0;
+                margin: 20px 0;
+            }}
+            
+            .list-group-item {{
+                background: #1E293B;
+                padding: 15px;
+                border-radius: 8px;
+                margin-bottom: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }}
+            
+            .list-group-item a {{
+                color: #64B5F6;
+                text-decoration: none;
+                margin-right: 15px;
+            }}
+            
+            .list-group-item a:hover {{
+                text-decoration: underline;
+            }}
+            
+            audio {{
+                margin-left: 10px;
+            }}
+            
+            .btn {{
+                display: inline-block;
+                font-weight: 500;
+                text-align: center;
+                white-space: nowrap;
+                vertical-align: middle;
+                user-select: none;
+                padding: 10px 20px;
+                font-size: 14px;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: all 0.2s;
+                border: none;
+                text-decoration: none;
+            }}
+            
+            .btn-primary {{
+                background: linear-gradient(90deg, #6366F1, #64B5F6);
+                color: white;
+            }}
+            
+            .btn-primary:hover {{
+                box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+            }}
+            
+            footer {{
+                margin-top: 50px;
+                padding: 30px 0;
+                border-top: 1px solid #2D3748;
+                text-align: center;
+            }}
+            
+            footer a {{
+                color: #64B5F6;
+                text-decoration: none;
+                transition: color 0.2s;
+            }}
+            
+            footer a:hover {{
+                color: #90CAF9;
+            }}
+            
+            .text-muted {{
+                color: #94A3B8;
+                font-size: 14px;
+                margin-top: 10px;
+            }}
         </style>
     </head>
     <body>
-        <div class="container mt-5">
-            <h1>MP3 Test Page</h1>
-            <p>Base URL: {base_url}</p>
+        <div class="container">
+            <div class="header">
+                <img src="/static/logo.png" alt="Call Center Testing Logo">
+                <h1>MP3 Test Page</h1>
+            </div>
+            
+            <p>Base URL: <span class="base-url">{base_url}</span></p>
+            
             <h2>MP3 Files</h2>
             <ul class="list-group">
-                {''.join([f'<li class="list-group-item"><a href="{mp3["url"]}" target="_blank">{mp3["file"]}</a> - <audio controls src="{mp3["url"]}"></audio></li>' for mp3 in mp3_list])}
+                {''.join([f'<li class="list-group-item"><a href="{mp3["url"]}" target="_blank">{mp3["file"]}</a> <audio controls src="{mp3["url"]}"></audio></li>' for mp3 in mp3_list])}
             </ul>
             
-            <div class="mt-4">
+            <div style="margin-top: 30px;">
                 <a href="/" class="btn btn-primary">Back to Main Page</a>
             </div>
             
@@ -973,7 +1449,7 @@ def test_mp3():
                 <p>
                     <a href="https://github.com/webdevtodayjason/callcenter-testing" target="_blank">
                         <i class="fab fa-github fa-2x"></i>
-                        <span class="ml-2">View on GitHub</span>
+                        <span style="margin-left: 8px;">View on GitHub</span>
                     </a>
                 </p>
                 <p class="text-muted">© 2023 Jason Brashear</p>
@@ -991,34 +1467,145 @@ def test_static():
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Static File Test</title>
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+        <title>Static File Test - Call Center Testing</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         <style>
-            footer {{ margin-top: 50px; padding: 20px 0; border-top: 1px solid #dee2e6; text-align: center; }}
-            footer a {{ color: #007bff; }}
-            footer a:hover {{ color: #0056b3; text-decoration: none; }}
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            
+            body {
+                font-family: 'Inter', sans-serif;
+                background: #000913;
+                color: white;
+                padding: 0;
+                margin: 0;
+                min-height: 100vh;
+                background-image: linear-gradient(to bottom, #000913, #0F172A);
+            }
+            
+            .container {
+                width: 100%;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+            }
+            
+            .header {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+            
+            .header img {
+                height: 40px;
+            }
+            
+            h1 {
+                font-size: 32px;
+                font-weight: 700;
+                margin-bottom: 20px;
+            }
+            
+            p {
+                margin-bottom: 15px;
+                color: #E2E8F0;
+            }
+            
+            .alert {
+                background: rgba(79, 209, 197, 0.1);
+                border-left: 4px solid #4FD1C5;
+                padding: 15px 20px;
+                border-radius: 8px;
+                margin: 20px 0;
+            }
+            
+            .btn {
+                display: inline-block;
+                font-weight: 500;
+                text-align: center;
+                white-space: nowrap;
+                vertical-align: middle;
+                user-select: none;
+                padding: 10px 20px;
+                font-size: 14px;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: all 0.2s;
+                border: none;
+                text-decoration: none;
+                margin-right: 10px;
+                margin-top: 10px;
+            }
+            
+            .btn-primary {
+                background: linear-gradient(90deg, #6366F1, #64B5F6);
+                color: white;
+            }
+            
+            .btn-primary:hover {
+                box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+            }
+            
+            .card {
+                background: #1E293B;
+                border-radius: 8px;
+                padding: 20px;
+                margin-bottom: 20px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            
+            footer {
+                margin-top: 50px;
+                padding: 30px 0;
+                border-top: 1px solid #2D3748;
+                text-align: center;
+            }
+            
+            footer a {
+                color: #64B5F6;
+                text-decoration: none;
+                transition: color 0.2s;
+            }
+            
+            footer a:hover {
+                color: #90CAF9;
+            }
+            
+            .text-muted {
+                color: #94A3B8;
+                font-size: 14px;
+                margin-top: 10px;
+            }
         </style>
     </head>
     <body>
-        <div class="container mt-5">
-            <h1>Static File Test</h1>
-            <p>This page tests if static files are being served correctly.</p>
-            <div class="alert alert-info">
-                If you see this page, the Flask server is running correctly.
+        <div class="container">
+            <div class="header">
+                <img src="/static/logo.png" alt="Call Center Testing Logo">
+                <h1>Static File Test</h1>
             </div>
-            <p>Try accessing a static file directly:</p>
-            <a href="/static/mp3/file1.mp3" class="btn btn-primary">Test MP3 File</a>
             
-            <div class="mt-4">
-                <a href="/" class="btn btn-primary">Back to Main Page</a>
+            <div class="card">
+                <p>This page tests if static files are being served correctly.</p>
+                <div class="alert">
+                    If you see this page, the Flask server is running correctly.
+                </div>
+                <p>Try accessing a static file directly:</p>
+                <a href="/static/mp3/file1.mp3" class="btn btn-primary">Test MP3 File</a>
             </div>
+            
+            <a href="/" class="btn btn-primary">Back to Main Page</a>
             
             <footer>
                 <p>
                     <a href="https://github.com/webdevtodayjason/callcenter-testing" target="_blank">
                         <i class="fab fa-github fa-2x"></i>
-                        <span class="ml-2">View on GitHub</span>
+                        <span style="margin-left: 8px;">View on GitHub</span>
                     </a>
                 </p>
                 <p class="text-muted">© 2023 Jason Brashear</p>
@@ -1051,19 +1638,200 @@ def test_twilio():
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Twilio Account Test</title>
-            <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+            <title>Twilio Account Test - Call Center Testing</title>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
             <style>
-                footer {{ margin-top: 50px; padding: 20px 0; border-top: 1px solid #dee2e6; text-align: center; }}
-                footer a {{ color: #007bff; }}
-                footer a:hover {{ color: #0056b3; text-decoration: none; }}
+                * {{
+                    box-sizing: border-box;
+                    margin: 0;
+                    padding: 0;
+                }}
+                
+                body {{
+                    font-family: 'Inter', sans-serif;
+                    background: #000913;
+                    color: white;
+                    padding: 0;
+                    margin: 0;
+                    min-height: 100vh;
+                    background-image: linear-gradient(to bottom, #000913, #0F172A);
+                }}
+                
+                .container {{
+                    width: 100%;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }}
+                
+                .header {{
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    margin-bottom: 20px;
+                }}
+                
+                .header img {{
+                    height: 40px;
+                }}
+                
+                h1 {{
+                    font-size: 32px;
+                    font-weight: 700;
+                    margin-bottom: 20px;
+                }}
+                
+                h2 {{
+                    font-size: 24px;
+                    font-weight: 600;
+                    margin: 30px 0 15px;
+                }}
+                
+                p {{
+                    margin-bottom: 15px;
+                    color: #E2E8F0;
+                }}
+                
+                strong {{
+                    color: white;
+                    font-weight: 600;
+                }}
+                
+                .card {{
+                    background: #0F172A;
+                    border-radius: 16px;
+                    margin-bottom: 20px;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                    border: none;
+                    overflow: hidden;
+                }}
+                
+                .card-header {{
+                    background: #1E293B;
+                    color: white;
+                    padding: 15px 20px;
+                    font-weight: 600;
+                    border-bottom: 1px solid #2D3748;
+                    font-size: 16px;
+                }}
+                
+                .card-body {{
+                    padding: 20px;
+                }}
+                
+                .table {{
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 15px 0;
+                }}
+                
+                .table th {{
+                    text-align: left;
+                    padding: 10px;
+                    border-bottom: 1px solid #2D3748;
+                    color: #94A3B8;
+                    font-weight: 500;
+                }}
+                
+                .table td {{
+                    padding: 10px;
+                    border-bottom: 1px solid #2D3748;
+                }}
+                
+                .table tr:last-child td {{
+                    border-bottom: none;
+                }}
+                
+                .form-group {{
+                    margin-bottom: 20px;
+                }}
+                
+                label {{
+                    display: block;
+                    margin-bottom: 8px;
+                    font-weight: 500;
+                    color: #E2E8F0;
+                }}
+                
+                .form-control {{
+                    width: 100%;
+                    padding: 10px 15px;
+                    background: #1E293B;
+                    border: 1px solid #2D3748;
+                    border-radius: 6px;
+                    color: white;
+                    font-family: 'Inter', sans-serif;
+                }}
+                
+                .form-control:focus {{
+                    outline: none;
+                    border-color: #64B5F6;
+                    box-shadow: 0 0 0 2px rgba(100, 181, 246, 0.3);
+                }}
+                
+                .btn {{
+                    display: inline-block;
+                    font-weight: 500;
+                    text-align: center;
+                    white-space: nowrap;
+                    vertical-align: middle;
+                    user-select: none;
+                    padding: 10px 20px;
+                    font-size: 14px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    border: none;
+                    text-decoration: none;
+                    margin-right: 10px;
+                }}
+                
+                .btn-primary {{
+                    background: linear-gradient(90deg, #6366F1, #64B5F6);
+                    color: white;
+                }}
+                
+                .btn-primary:hover {{
+                    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+                }}
+                
+                .mt-4 {{
+                    margin-top: 30px;
+                }}
+                
+                footer {{
+                    margin-top: 50px;
+                    padding: 30px 0;
+                    border-top: 1px solid #2D3748;
+                    text-align: center;
+                }}
+                
+                footer a {{
+                    color: #64B5F6;
+                    text-decoration: none;
+                    transition: color 0.2s;
+                }}
+                
+                footer a:hover {{
+                    color: #90CAF9;
+                }}
+                
+                .text-muted {{
+                    color: #94A3B8;
+                    font-size: 14px;
+                    margin-top: 10px;
+                }}
             </style>
         </head>
         <body>
-            <div class="container mt-5">
-                <h1>Twilio Account Status</h1>
-                <div class="card mb-4">
+            <div class="container">
+                <div class="header">
+                    <img src="/static/logo.png" alt="Call Center Testing Logo">
+                    <h1>Twilio Account Status</h1>
+                </div>
+                
+                <div class="card">
                     <div class="card-header">Account Information</div>
                     <div class="card-body">
                         <p><strong>Account SID:</strong> {account.sid}</p>
@@ -1093,7 +1861,7 @@ def test_twilio():
                 </div>
                 
                 <h2>Test Call</h2>
-                <div class="card mt-4">
+                <div class="card">
                     <div class="card-header">Make a Test Call</div>
                     <div class="card-body">
                         <form action="/test-call" method="post">
@@ -1114,7 +1882,7 @@ def test_twilio():
                     <p>
                         <a href="https://github.com/webdevtodayjason/callcenter-testing" target="_blank">
                             <i class="fab fa-github fa-2x"></i>
-                            <span class="ml-2">View on GitHub</span>
+                            <span style="margin-left: 8px;">View on GitHub</span>
                         </a>
                     </p>
                     <p class="text-muted">© 2023 Jason Brashear</p>
@@ -1129,27 +1897,131 @@ def test_twilio():
         <html>
         <head>
             <title>Error checking Twilio account</title>
-            <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
             <style>
-                footer {{ margin-top: 50px; padding: 20px 0; border-top: 1px solid #dee2e6; text-align: center; }}
-                footer a {{ color: #007bff; }}
-                footer a:hover {{ color: #0056b3; text-decoration: none; }}
+                * {{
+                    box-sizing: border-box;
+                    margin: 0;
+                    padding: 0;
+                }}
+                
+                body {{
+                    font-family: 'Inter', sans-serif;
+                    background: #000913;
+                    color: white;
+                    padding: 0;
+                    margin: 0;
+                    min-height: 100vh;
+                    background-image: linear-gradient(to bottom, #000913, #0F172A);
+                }}
+                
+                .container {{
+                    width: 100%;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }}
+                
+                .header {{
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    margin-bottom: 20px;
+                }}
+                
+                .header img {{
+                    height: 40px;
+                }}
+                
+                h1 {{
+                    font-size: 32px;
+                    font-weight: 700;
+                    margin-bottom: 20px;
+                    color: #FF5757;
+                }}
+                
+                .alert {{
+                    background: rgba(255, 87, 87, 0.1);
+                    border-left: 4px solid #FF5757;
+                    padding: 20px;
+                    border-radius: 6px;
+                    margin-bottom: 20px;
+                }}
+                
+                .alert p {{
+                    margin: 10px 0 0;
+                    color: #E2E8F0;
+                }}
+                
+                .btn {{
+                    display: inline-block;
+                    font-weight: 500;
+                    text-align: center;
+                    white-space: nowrap;
+                    vertical-align: middle;
+                    user-select: none;
+                    padding: 10px 20px;
+                    font-size: 14px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    border: none;
+                    text-decoration: none;
+                    margin-top: 20px;
+                }}
+                
+                .btn-primary {{
+                    background: linear-gradient(90deg, #6366F1, #64B5F6);
+                    color: white;
+                }}
+                
+                .btn-primary:hover {{
+                    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+                }}
+                
+                footer {{
+                    margin-top: 50px;
+                    padding: 30px 0;
+                    border-top: 1px solid #2D3748;
+                    text-align: center;
+                }}
+                
+                footer a {{
+                    color: #64B5F6;
+                    text-decoration: none;
+                    transition: color 0.2s;
+                }}
+                
+                footer a:hover {{
+                    color: #90CAF9;
+                }}
+                
+                .text-muted {{
+                    color: #94A3B8;
+                    font-size: 14px;
+                    margin-top: 10px;
+                }}
             </style>
         </head>
         <body>
-            <div class="container mt-5">
-                <div class="alert alert-danger">
+            <div class="container">
+                <div class="header">
+                    <img src="/static/logo.png" alt="Call Center Testing Logo">
                     <h1>Error checking Twilio account</h1>
+                </div>
+                
+                <div class="alert">
                     <p>{str(e)}</p>
                 </div>
+                
                 <a href="/" class="btn btn-primary">Back to Main Page</a>
                 
                 <footer>
                     <p>
                         <a href="https://github.com/webdevtodayjason/callcenter-testing" target="_blank">
                             <i class="fab fa-github fa-2x"></i>
-                            <span class="ml-2">View on GitHub</span>
+                            <span style="margin-left: 8px;">View on GitHub</span>
                         </a>
                     </p>
                     <p class="text-muted">© 2023 Jason Brashear</p>
@@ -1163,47 +2035,199 @@ def test_twilio():
 def test_call():
     """Make a test call with simple TwiML."""
     try:
-        test_number = request.form['test_number']
+        # Get the phone number from the form
+        test_number = request.form.get('test_number')
+        if not test_number:
+            raise ValueError("Phone number is required")
         
+        # Make the test call
         call = client.calls.create(
             to=test_number,
             from_=twilio_number,
-            url=f"{base_url}/simple-twiml",
-            status_callback=f"{base_url}/status",
-            status_callback_method='POST'
+            url=f"{base_url}/test-twiml"
         )
         
-        return f"""
+        html = f"""
         <html>
         <head>
-            <title>Test Call Initiated</title>
-            <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+            <title>Test Call Initiated - Call Center Testing</title>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-            <meta http-equiv="refresh" content="5;url=/" />
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
             <style>
-                footer {{ margin-top: 50px; padding: 20px 0; border-top: 1px solid #dee2e6; text-align: center; }}
-                footer a {{ color: #007bff; }}
-                footer a:hover {{ color: #0056b3; text-decoration: none; }}
+                * {{
+                    box-sizing: border-box;
+                    margin: 0;
+                    padding: 0;
+                }}
+                
+                body {{
+                    font-family: 'Inter', sans-serif;
+                    background: #000913;
+                    color: white;
+                    padding: 0;
+                    margin: 0;
+                    min-height: 100vh;
+                    background-image: linear-gradient(to bottom, #000913, #0F172A);
+                }}
+                
+                .container {{
+                    width: 100%;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }}
+                
+                .header {{
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    margin-bottom: 20px;
+                }}
+                
+                .header img {{
+                    height: 40px;
+                }}
+                
+                h1 {{
+                    font-size: 32px;
+                    font-weight: 700;
+                    margin-bottom: 20px;
+                }}
+                
+                .card {{
+                    background: #0F172A;
+                    border-radius: 16px;
+                    margin-bottom: 20px;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                    border: none;
+                    overflow: hidden;
+                }}
+                
+                .card-header {{
+                    background: #1E293B;
+                    color: white;
+                    padding: 15px 20px;
+                    font-weight: 600;
+                    border-bottom: 1px solid #2D3748;
+                    font-size: 16px;
+                }}
+                
+                .card-body {{
+                    padding: 20px;
+                }}
+                
+                p {{
+                    margin-bottom: 15px;
+                    color: #E2E8F0;
+                }}
+                
+                .success-icon {{
+                    font-size: 48px;
+                    color: #4BB543;
+                    text-align: center;
+                    margin: 20px 0;
+                }}
+                
+                .call-details {{
+                    background: #1E293B;
+                    padding: 15px;
+                    border-radius: 8px;
+                    margin: 20px 0;
+                }}
+                
+                .call-details p {{
+                    margin: 10px 0;
+                    display: flex;
+                    justify-content: space-between;
+                }}
+                
+                .call-details p span:first-child {{
+                    color: #94A3B8;
+                }}
+                
+                .btn {{
+                    display: inline-block;
+                    font-weight: 500;
+                    text-align: center;
+                    white-space: nowrap;
+                    vertical-align: middle;
+                    user-select: none;
+                    padding: 10px 20px;
+                    font-size: 14px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    border: none;
+                    text-decoration: none;
+                    margin-top: 20px;
+                }}
+                
+                .btn-primary {{
+                    background: linear-gradient(90deg, #6366F1, #64B5F6);
+                    color: white;
+                }}
+                
+                .btn-primary:hover {{
+                    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+                }}
+                
+                footer {{
+                    margin-top: 50px;
+                    padding: 30px 0;
+                    border-top: 1px solid #2D3748;
+                    text-align: center;
+                }}
+                
+                footer a {{
+                    color: #64B5F6;
+                    text-decoration: none;
+                    transition: color 0.2s;
+                }}
+                
+                footer a:hover {{
+                    color: #90CAF9;
+                }}
+                
+                .text-muted {{
+                    color: #94A3B8;
+                    font-size: 14px;
+                    margin-top: 10px;
+                }}
             </style>
         </head>
         <body>
-            <div class="container mt-5">
-                <div class="alert alert-success">
-                    <h4>Test Call Initiated</h4>
-                    <p>Call SID: {call.sid}</p>
-                    <p>Status: {call.status}</p>
+            <div class="container">
+                <div class="header">
+                    <img src="/static/logo.png" alt="Call Center Testing Logo">
+                    <h1>Test Call Initiated</h1>
                 </div>
-                <p>Redirecting to main page in 5 seconds...</p>
                 
-                <div class="mt-4">
-                    <a href="/" class="btn btn-primary">Back to Main Page</a>
+                <div class="card">
+                    <div class="card-header">Call Status</div>
+                    <div class="card-body">
+                        <div class="success-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <p>A test call has been initiated from {twilio_number} to {test_number}.</p>
+                        
+                        <div class="call-details">
+                            <p><span>Call SID:</span> <span>{call.sid}</span></p>
+                            <p><span>Status:</span> <span>{call.status}</span></p>
+                            <p><span>Direction:</span> <span>{call.direction}</span></p>
+                        </div>
+                        
+                        <p>You should receive the call shortly. Please answer to hear the test message.</p>
+                    </div>
                 </div>
+                
+                <a href="/test-twilio" class="btn btn-primary">Back to Twilio Test Page</a>
+                <a href="/" class="btn btn-primary">Back to Main Page</a>
                 
                 <footer>
                     <p>
                         <a href="https://github.com/webdevtodayjason/callcenter-testing" target="_blank">
                             <i class="fab fa-github fa-2x"></i>
-                            <span class="ml-2">View on GitHub</span>
+                            <span style="margin-left: 8px;">View on GitHub</span>
                         </a>
                     </p>
                     <p class="text-muted">© 2023 Jason Brashear</p>
@@ -1212,32 +2236,145 @@ def test_call():
         </body>
         </html>
         """
+        return html
     except Exception as e:
         return f"""
         <html>
         <head>
-            <title>Test Call Failed</title>
-            <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+            <title>Test Call Failed - Call Center Testing</title>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
             <style>
-                footer {{ margin-top: 50px; padding: 20px 0; border-top: 1px solid #dee2e6; text-align: center; }}
-                footer a {{ color: #007bff; }}
-                footer a:hover {{ color: #0056b3; text-decoration: none; }}
+                * {{
+                    box-sizing: border-box;
+                    margin: 0;
+                    padding: 0;
+                }}
+                
+                body {{
+                    font-family: 'Inter', sans-serif;
+                    background: #000913;
+                    color: white;
+                    padding: 0;
+                    margin: 0;
+                    min-height: 100vh;
+                    background-image: linear-gradient(to bottom, #000913, #0F172A);
+                }}
+                
+                .container {{
+                    width: 100%;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }}
+                
+                .header {{
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    margin-bottom: 20px;
+                }}
+                
+                .header img {{
+                    height: 40px;
+                }}
+                
+                h1 {{
+                    font-size: 32px;
+                    font-weight: 700;
+                    margin-bottom: 20px;
+                    color: #FF5757;
+                }}
+                
+                h4 {{
+                    color: #FF5757;
+                    margin-bottom: 10px;
+                }}
+                
+                .alert {{
+                    background: rgba(255, 87, 87, 0.1);
+                    border-left: 4px solid #FF5757;
+                    padding: 20px;
+                    border-radius: 6px;
+                    margin-bottom: 20px;
+                }}
+                
+                .alert p {{
+                    margin: 10px 0 0;
+                    color: #E2E8F0;
+                }}
+                
+                .btn {{
+                    display: inline-block;
+                    font-weight: 500;
+                    text-align: center;
+                    white-space: nowrap;
+                    vertical-align: middle;
+                    user-select: none;
+                    padding: 10px 20px;
+                    font-size: 14px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    border: none;
+                    text-decoration: none;
+                    margin-top: 20px;
+                    margin-right: 10px;
+                }}
+                
+                .btn-primary {{
+                    background: linear-gradient(90deg, #6366F1, #64B5F6);
+                    color: white;
+                }}
+                
+                .btn-primary:hover {{
+                    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+                }}
+                
+                footer {{
+                    margin-top: 50px;
+                    padding: 30px 0;
+                    border-top: 1px solid #2D3748;
+                    text-align: center;
+                }}
+                
+                footer a {{
+                    color: #64B5F6;
+                    text-decoration: none;
+                    transition: color 0.2s;
+                }}
+                
+                footer a:hover {{
+                    color: #90CAF9;
+                }}
+                
+                .text-muted {{
+                    color: #94A3B8;
+                    font-size: 14px;
+                    margin-top: 10px;
+                }}
             </style>
         </head>
         <body>
-            <div class="container mt-5">
-                <div class="alert alert-danger">
-                    <h4>Test Call Failed</h4>
+            <div class="container">
+                <div class="header">
+                    <img src="/static/logo.png" alt="Call Center Testing Logo">
+                    <h1>Test Call Failed</h1>
+                </div>
+                
+                <div class="alert">
+                    <h4>Error Details</h4>
                     <p>Error: {str(e)}</p>
                 </div>
+                
+                <a href="/test-twilio" class="btn btn-primary">Back to Twilio Test Page</a>
                 <a href="/" class="btn btn-primary">Back to Main Page</a>
                 
                 <footer>
                     <p>
                         <a href="https://github.com/webdevtodayjason/callcenter-testing" target="_blank">
                             <i class="fab fa-github fa-2x"></i>
-                            <span class="ml-2">View on GitHub</span>
+                            <span style="margin-left: 8px;">View on GitHub</span>
                         </a>
                     </p>
                     <p class="text-muted">© 2023 Jason Brashear</p>
@@ -1284,28 +2421,315 @@ def manage_mp3():
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Manage MP3 Files</title>
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+        <title>Manage MP3 Files - Call Center Testing</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
         <style>
-            footer {{ margin-top: 50px; padding: 20px 0; border-top: 1px solid #dee2e6; text-align: center; }}
-            footer a {{ color: #007bff; }}
-            footer a:hover {{ color: #0056b3; text-decoration: none; }}
-            .file-actions {{ white-space: nowrap; }}
+            * {{
+                font-family: 'Inter', sans-serif;
+                box-sizing: border-box;
+            }}
+            
+            body {{
+                color: #E2E8F0;
+                padding: 0;
+                margin: 0;
+                min-height: 100vh;
+                background-image: linear-gradient(to bottom, #000913, #0F172A);
+            }}
+            
+            .container {{
+                width: 100%;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px;
+            }}
+            
+            .header {{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 0;
+            }}
+            
+            .logo {{
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-weight: 700;
+                font-size: 22px;
+            }}
+            
+            .logo img {{
+                height: 100px;
+            }}
+            
+            h1 {{
+                color: #E2E8F0;
+                margin-bottom: 30px;
+            }}
+            
+            .card {{
+                background-color: rgba(15, 23, 42, 0.6);
+                border-radius: 8px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                margin-bottom: 30px;
+                overflow: hidden;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }}
+            
+            .card-header {{
+                background-color: rgba(15, 23, 42, 0.8);
+                padding: 15px 20px;
+                font-weight: 600;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }}
+            
+            .card-body {{
+                padding: 20px;
+            }}
+            
+            table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 1rem;
+                color: #E2E8F0;
+            }}
+            
+            table th, table td {{
+                padding: 12px 15px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                text-align: left;
+            }}
+            
+            table th {{
+                font-weight: 600;
+                color: #94A3B8;
+                text-transform: uppercase;
+                font-size: 0.85rem;
+                letter-spacing: 0.5px;
+            }}
+            
+            .btn {{
+                display: inline-block;
+                font-weight: 500;
+                text-align: center;
+                vertical-align: middle;
+                cursor: pointer;
+                padding: 8px 16px;
+                font-size: 14px;
+                line-height: 1.5;
+                border-radius: 6px;
+                transition: all 0.2s ease;
+                text-decoration: none;
+                margin-right: 5px;
+            }}
+            
+            .btn-primary {{
+                background-image: linear-gradient(to right, #0EA5E9, #2563EB);
+                border: none;
+                color: white;
+            }}
+            
+            .btn-primary:hover {{
+                opacity: 0.9;
+                transform: translateY(-1px);
+            }}
+            
+            .btn-danger {{
+                background-color: rgba(220, 38, 38, 0.8);
+                border: none;
+                color: white;
+            }}
+            
+            .btn-danger:hover {{
+                background-color: rgba(220, 38, 38, 1);
+            }}
+            
+            .btn-info {{
+                background-color: rgba(6, 182, 212, 0.8);
+                border: none;
+                color: white;
+            }}
+            
+            .btn-info:hover {{
+                background-color: rgba(6, 182, 212, 1);
+            }}
+            
+            .btn-secondary {{
+                background-color: #475569;
+                border: none;
+                color: white;
+            }}
+            
+            .btn-secondary:hover {{
+                background-color: #64748B;
+            }}
+            
+            .btn-sm {{
+                padding: 5px 10px;
+                font-size: 12px;
+            }}
+            
+            .file-actions {{
+                white-space: nowrap;
+            }}
+            
+            .form-group {{
+                margin-bottom: 20px;
+            }}
+            
+            .form-group label {{
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 500;
+            }}
+            
+            .form-control-file {{
+                display: block;
+                width: 100%;
+                padding: 10px;
+                background-color: rgba(15, 23, 42, 0.8);
+                color: #E2E8F0;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 4px;
+            }}
+            
+            .form-text {{
+                display: block;
+                margin-top: 5px;
+                font-size: 0.875rem;
+                color: #94A3B8;
+            }}
+            
+            .modal {{
+                display: none;
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                overflow: auto;
+                background-color: rgba(0, 0, 0, 0.7);
+            }}
+            
+            .modal-dialog {{
+                margin: 10% auto;
+                width: 90%;
+                max-width: 500px;
+            }}
+            
+            .modal-content {{
+                background-color: #0F172A;
+                border-radius: 8px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }}
+            
+            .modal-header {{
+                padding: 15px 20px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }}
+            
+            .modal-title {{
+                margin: 0;
+                font-weight: 600;
+            }}
+            
+            .close {{
+                background: none;
+                border: none;
+                font-size: 24px;
+                font-weight: bold;
+                color: #94A3B8;
+                cursor: pointer;
+            }}
+            
+            .modal-body {{
+                padding: 20px;
+            }}
+            
+            .modal-footer {{
+                padding: 15px 20px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                display: flex;
+                justify-content: flex-end;
+            }}
+            
+            .form-control {{
+                display: block;
+                width: 100%;
+                padding: 10px;
+                background-color: rgba(15, 23, 42, 0.8);
+                color: #E2E8F0;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 4px;
+            }}
+            
+            footer {{
+                margin-top: 50px;
+                padding: 20px 0;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                text-align: center;
+            }}
+            
+            footer a {{
+                color: #38BDF8;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                transition: color 0.2s;
+            }}
+            
+            footer a:hover {{
+                color: #0EA5E9;
+            }}
+            
+            .text-muted {{
+                color: #94A3B8;
+            }}
+            
+            .ml-2 {{
+                margin-left: 8px;
+            }}
+            
+            .mt-4 {{
+                margin-top: 1.5rem;
+            }}
+            
+            /* Animation for modals */
+            .fade {{
+                transition: opacity 0.15s linear;
+            }}
+            
+            .show {{
+                display: block;
+            }}
         </style>
     </head>
     <body>
-        <div class="container mt-5">
+        <div class="container">
+            <div class="header">
+                <div class="logo">
+                    <img src="/static/logo.png" alt="Call Center Testing Logo">
+                    <div>Call Center Testing</div>
+                </div>
+            </div>
+            
             <h1>Manage MP3 Files</h1>
             
-            <div class="card mb-4">
+            <div class="card">
                 <div class="card-header">Upload New MP3 File</div>
                 <div class="card-body">
                     <form action="/upload-mp3" method="post" enctype="multipart/form-data">
                         <div class="form-group">
                             <label for="mp3_file">Select MP3 File</label>
                             <input type="file" class="form-control-file" id="mp3_file" name="mp3_file" accept=".mp3,.wav" required>
-                            <small class="form-text text-muted">Max file size: 16MB. Allowed formats: MP3, WAV</small>
+                            <small class="form-text">Max file size: 16MB. Allowed formats: MP3, WAV</small>
                         </div>
                         <button type="submit" class="btn btn-primary">Upload</button>
                     </form>
@@ -1315,7 +2739,7 @@ def manage_mp3():
             <div class="card">
                 <div class="card-header">MP3 Files</div>
                 <div class="card-body">
-                    <table class="table">
+                    <table>
                         <thead>
                             <tr>
                                 <th>Filename</th>
@@ -1348,11 +2772,11 @@ def manage_mp3():
             </div>
             
             <!-- Rename Modal -->
-            <div class="modal fade" id="renameModal" tabindex="-1" role="dialog" aria-labelledby="renameModalLabel" aria-hidden="true">
+            <div class="modal" id="renameModal" tabindex="-1" role="dialog">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="renameModalLabel">Rename File</h5>
+                            <h5 class="modal-title">Rename File</h5>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>
@@ -1363,7 +2787,7 @@ def manage_mp3():
                                 <div class="form-group">
                                     <label for="new_filename">New Filename</label>
                                     <input type="text" class="form-control" id="new_filename" name="new_filename" required>
-                                    <small class="form-text text-muted">Include file extension (.mp3 or .wav)</small>
+                                    <small class="form-text">Include file extension (.mp3 or .wav)</small>
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -1387,8 +2811,6 @@ def manage_mp3():
         </div>
         
         <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
         <script>
             $(document).ready(function() {{
                 /* Handle rename button click */
@@ -1396,7 +2818,12 @@ def manage_mp3():
                     var filename = $(this).data('filename');
                     $('#original_filename').val(filename);
                     $('#new_filename').val(filename);
-                    $('#renameModal').modal('show');
+                    $('#renameModal').addClass('show');
+                }});
+                
+                /* Handle modal close */
+                $('.close, .btn-secondary').click(function() {{
+                    $('#renameModal').removeClass('show');
                 }});
             }});
         </script>
@@ -1476,6 +2903,16 @@ def rename_mp3():
         mp3_files = get_mp3_files()
     
     return redirect(url_for('manage_mp3'))
+
+@app.route('/test-twiml', methods=['POST', 'GET'])
+def test_twiml():
+    """Return TwiML for test calls."""
+    resp = VoiceResponse()
+    resp.say("This is a test call from the Call Center Testing Tool. Your Twilio account is working correctly. Thank you for testing!", voice='alice')
+    resp.pause(length=1)
+    resp.say("Goodbye!", voice='alice')
+    resp.hangup()
+    return str(resp)
 
 if __name__ == '__main__':
     # Print configuration for debugging
